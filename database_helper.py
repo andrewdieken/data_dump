@@ -14,7 +14,7 @@ def createDatabase(cursor, databaseName):
         exit(1)
 
 #===============================================================================
-#
+# Parses `schema.csv` file and returns the attributes as an array of tuples
 #===============================================================================
 def getAttributes(fileName):
     attributes = []
@@ -32,7 +32,7 @@ def getAttributes(fileName):
         print("FILE ERROR: {}".format(error))
 
 #===============================================================================
-# Parses `schema.csv` file and returns array of ALTER statements strings to be
+# Parses `schema.csv` file and returns array of ALTER statement strings to be
 # executed in `main.py`
 #===============================================================================
 def parseSchema(fileName):
@@ -61,7 +61,10 @@ def parseSchema(fileName):
         print("FILE ERROR: {}".format(error))
 
 #===============================================================================
-#
+# Checks table to ensure entry for duplicates
+# Returns:
+# -> True if there is no entry in table matching entry[0]
+# -> False if none
 #===============================================================================
 def entryExists(cursor, entry):
     query = "SELECT EXISTS(SELECT * FROM {} WHERE author_name='{}')".format(credentials.table, entry[0])
@@ -73,7 +76,7 @@ def entryExists(cursor, entry):
         return True
 
 #===============================================================================
-#
+# Checks each entry in `data.csv`
 #===============================================================================
 def validEntry(attributes, entry):
     # Validate length of the name
@@ -90,7 +93,7 @@ def validEntry(attributes, entry):
         return True
 
 #===============================================================================
-#
+# Writes entry to `invalid.csv` for review
 #===============================================================================
 def logInvalidEntry(entry):
     try:
@@ -102,7 +105,8 @@ def logInvalidEntry(entry):
         print("FILE ERROR: {}.".format(error))
 
 #===============================================================================
-#
+# Parses `data.csv` and returns array of INSERT statement strings to be executed
+# in `main.py`
 #===============================================================================
 def parseData(cursor, attributes, fileName):
     returnArray = []
