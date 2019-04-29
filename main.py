@@ -78,7 +78,6 @@ if __name__ == '__main__':
 
         insertStatements = database_helper.parseData(mySQLCursor, attributes, dataFilePath)
         for statement in insertStatements:
-            print(statement)
             mySQLCursor.execute(statement)
 
             # Make changes to database
