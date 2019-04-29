@@ -87,9 +87,3 @@ if __name__ == '__main__':
         print(error.msg)
     else:
         print("OK")
-
-
-
-# Check connection to mysql -> yes
-# Check if database exists -> yes
-# Check if table exists -> no
