@@ -3,6 +3,24 @@
 Author: Andrew Dieken
 Date: 04/29/2019
 
+### Running
+
+The application can be found in `main.py`.
+- `main.py` uses helper functions found in `database_helper.py`
+
+To use your own schema & data, simple replace the contents of the files
+
+-  `schema.csv`
+-  `data.csv`
+
+found in the `data_drop` folder with your own.
+
+
+To run the application, run the following (ensure you are in the `data_dump directory`)
+```shell
+$ python main.py
+```
+
 ### Database Type
 
 MySQL
@@ -11,8 +29,9 @@ MySQL
 
 Python MySQL Connector
 
+To use the Python MySQL Connector, run the following
 ```shell
-pip install mysql-connector
+$ pip install mysql-connector
 ```
 
 ### Connection Credentials
@@ -24,6 +43,7 @@ MySQL credentials that can be configured include
 - user
 - password
 - database
+- table
 
 ### Error Handling
 
@@ -34,6 +54,6 @@ Using the `errorcode` module from Python MySQL Connector
 When parsing `data.csv` and encountered invalid entries such as
 
 - Invalid type
-- Field width out of range
+- String too long
 
-entries were written to `invalid.csv` with an error message as to why the entry was invalid.
+entries were written to `invalid.csv` for further review.
