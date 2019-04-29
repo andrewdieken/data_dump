@@ -8,7 +8,7 @@ Date: 04/29/2019
 The application can be found in `main.py`.
 - `main.py` uses helper functions found in `database_helper.py`
 
-To use your own schema & data, simple replace the contents of the files
+To use your own schema & data, simply replace the contents of the files
 
 -  `schema.csv`
 -  `data.csv`
@@ -16,7 +16,7 @@ To use your own schema & data, simple replace the contents of the files
 found in the `data_drop` folder with your own.
 
 
-To run the application, run the following (ensure you are in the `data_dump directory`)
+To run the application, run the following (ensure you are in the `data_dump` directory)
 ```shell
 $ python main.py
 ```
