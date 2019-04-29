@@ -110,7 +110,15 @@ def logInvalidEntry(entry):
 #===============================================================================
 def parseData(cursor, attributes, fileName):
     returnArray = []
-    insertString = "INSERT INTO {} (author_name, is_alive, books_authored_count) VALUES ('{}', {}, {})"
+    # Assemble Insert String
+    startString = "INSERT INTO {} ("
+    endString = ") VALUES ('{}', {}, {})"
+    for i in range(len(attributes)):
+        if i == len(attributes) - 1:
+            startString =  startString + attributes[i][0]
+        else:
+            startString =  startString + attributes[i][0] +','
+    insertString = startString + endString
     table = credentials.table
     try:
         with open(fileName, 'r', encoding="utf8") as csvfile:
