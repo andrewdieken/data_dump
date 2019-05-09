@@ -15,6 +15,7 @@ def createDatabase(cursor, databaseName):
 
 #===============================================================================
 # Parses `schema.csv` file and returns the attributes as an array of tuples
+# Ex) [('author_name', '10', 'CHAR'), ('is_alive', '1', 'BOOLEAN'), ('books_authored_count', '2', 'INTEGER')]
 #===============================================================================
 def getAttributes(fileName):
     attributes = []
@@ -111,25 +112,36 @@ def logInvalidEntry(entry):
 def parseData(cursor, attributes, fileName):
     returnArray = []
     # Assemble Insert String
-    startString = "INSERT INTO {} ("
-    endString = ") VALUES ('{}', {}, {})"
+    attributeSting = ""
     for i in range(len(attributes)):
-        if i == len(attributes) - 1:
-            startString =  startString + attributes[i][0]
+        if i == (len(attributes) - 1):
+            attributeSting += attributes[i][0]
         else:
-            startString =  startString + attributes[i][0] +','
-    insertString = startString + endString
-    table = credentials.table
+            attributeSting += attributes[i][0] + ","
+
+    insertString = "INSERT INTO {} (".format(credentials.table) + attributeSting + ") VALUES ({})"
+
     try:
         with open(fileName, 'r', encoding="utf8") as csvfile:
             csvreader = csv.reader(csvfile)
             for entry in csvreader:
                 if entryExists(cursor, entry):
                     if validEntry(attributes, entry):
-                        attribute1 = entry[0]
-                        attribute2 = entry[1]
-                        attribute3 = entry[2]
-                        returnArray.append(insertString.format(table, attribute1, attribute2, attribute3))
+                        # Build insertString for entry
+                        valueString = ""
+                        for i in range(len(entry)):
+                            # Check if value type is CHAR
+                            if isChar(attributes[i][2]):
+                                if i == (len(entry) - 1):
+                                    valueString += "\'" + entry[i] + "\'"
+                                else:
+                                    valueString += "\'" + entry[i] + "\'" + ","
+                            else:
+                                if i == (len(entry) - 1):
+                                    valueString += entry[i]
+                                else:
+                                    valueString += entry[i] + ","
+                        returnArray.append(insertString.format(valueString))
                     else:
                         print("Logging entry to 'invalid.csv' for review.\n")
                         logInvalidEntry(entry)
@@ -137,7 +149,19 @@ def parseData(cursor, attributes, fileName):
                     print("ERROR: entry already exists.\n")
 
         csvfile.close()
+        print("Return array: {}".format(returnArray))
         return returnArray
 
     except csv.Error as error:
         print("FILE ERROR: {}".format(error))
+
+#===============================================================================
+# Checks if a given attribute type is CHAR
+# -> True if type is CHAR
+# -> False if not
+#===============================================================================
+def isChar(attribute):
+    if attribute == "CHAR":
+        return True
+    else:
+        return False
