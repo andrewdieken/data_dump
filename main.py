@@ -23,7 +23,11 @@ if __name__ == '__main__':
         mySQLCursor = mySQL.cursor()
 
     except mysql.connector.Error as error:
-        print("CONNECTION ERROR: {}.\n".format(error))
+        print("CONNECTION ERROR: ", end='')
+        if error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Invalid login credentials")
+        else:
+            print(error)
         exit(1)
 
     #===============================================================================
