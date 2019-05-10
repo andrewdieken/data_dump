@@ -80,18 +80,20 @@ def entryExists(cursor, entry):
 # Checks each entry in `data.csv`
 #===============================================================================
 def validEntry(attributes, entry):
-    # Validate length of the name
-    if len(str(entry[0])) > int(attributes[0][1]):
-        print("ERROR: name too long.")
-        return False
-    elif int(entry[1]) < 0 or int(entry[1]) > 1:
-        print("ERROR: not vaild BOOLEAN input.")
-        return False
-    elif int(entry[2]) > 99:
-        print("ERROR: number too long.")
+    # Check if entry has all attributes
+    if len(entry) != len(attributes):
         return False
     else:
-        return True
+        for i in range(len(entry)):
+            # if char
+            if attributes[i][2] == "CHAR":
+                return len(entry[i]) <= int(attributes[i][1])
+            # if int
+            if attributes[i][2] == "INTEGER":
+                return len(str(entry[i])) <= len(str(attributes[i][1]))
+            # boolean
+            if attributes[i][2] == "BOOLEAN":
+                return entry[i] <=  1
 
 #===============================================================================
 # Writes entry to `invalid.csv` for review
@@ -149,7 +151,6 @@ def parseData(cursor, attributes, fileName):
                     print("ERROR: entry already exists.\n")
 
         csvfile.close()
-        print("Return array: {}".format(returnArray))
         return returnArray
 
     except csv.Error as error:
