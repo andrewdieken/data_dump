@@ -10,6 +10,7 @@ if __name__ == '__main__':
     dataFilePath = "./data_drop/data.csv"
     databaseName = credentials.database
     attributes = []
+    charIndexes = []
 
     #===============================================================================
     # Connect to MySQL
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     #===============================================================================
     # Get Attributes
     #===============================================================================
-    attributes = database_helper.getAttributes(schemaFilePath)
+    attributes, charIndexes = database_helper.getAttributes(schemaFilePath)
 
     #===============================================================================
     # Populate Table
@@ -80,8 +81,9 @@ if __name__ == '__main__':
     try:
         print("Populating table '{}':\n".format(credentials.table), end='')
 
-        insertStatements = database_helper.parseData(mySQLCursor, attributes, dataFilePath)
+        insertStatements = database_helper.parseData(mySQLCursor, attributes, charIndexes, dataFilePath)
         for statement in insertStatements:
+            print(statement)
             mySQLCursor.execute(statement)
 
             # Make changes to database
