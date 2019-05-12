@@ -14,27 +14,34 @@ def createDatabase(cursor, databaseName):
         exit(1)
 
 #===============================================================================
-# Parses `schema.csv` file and returns the attributes as an array of tuples
-# Ex) [('author_name', '10', 'CHAR'), ('is_alive', '1', 'BOOLEAN'), ('books_authored_count', '2', 'INTEGER')]
+# Parses `schema.csv` file and returns the attributes as an array of tuples && and array of the indexes of attributes of type CHAR
+# Return => [('author_name', '10', 'CHAR'), ('is_alive', '1', 'BOOLEAN'), ('books_authored_count', '2', 'INTEGER')]
+#        => [0]
 #===============================================================================
 def getAttributes(fileName):
     attributes = []
+    charIndexes = []
     try:
         with open(fileName, 'r', encoding='utf8') as csvFile:
             csvReader = csv.reader(csvFile)
             next(csvReader)
+            index = 0
             for attribute in csvReader:
                 attributes.append((attribute[0],attribute[1], attribute[2]))
+                if "CHAR" in attribute:
+                    charIndexes.append(index)
+                index += 1
 
         csvFile.close()
 
-        return attributes
+        return attributes, charIndexes
     except csv.Error as error:
         print("FILE ERROR: {}".format(error))
 
 #===============================================================================
 # Parses `schema.csv` file and returns array of ALTER statement strings to be
 # executed in `main.py`
+# Return => ['ALTER TABLE test ADD author_name CHAR(10)', 'ALTER TABLE test ADD is_alive BOOLEAN', 'ALTER TABLE test ADD books_authored_count INTEGER(2)']
 #===============================================================================
 def parseSchema(fileName):
     returnArray = []
@@ -78,6 +85,7 @@ def entryExists(cursor, entry):
 
 #===============================================================================
 # Checks each entry in `data.csv`
+#
 #===============================================================================
 def validEntry(attributes, entry):
     # Check if entry has all attributes
@@ -87,16 +95,25 @@ def validEntry(attributes, entry):
         for i in range(len(entry)):
             # if char
             if attributes[i][2] == "CHAR":
-                return len(entry[i]) <= int(attributes[i][1])
+                if len(entry[i]) > int(attributes[i][1]):
+                    return False, "CHAR length too large"
             # if int
             if attributes[i][2] == "INTEGER":
-                return len(str(entry[i])) <= len(str(attributes[i][1]))
+                if len(str(entry[i])) > int(attributes[i][1]):
+                    return False, "INTEGER too large"
             # boolean
             if attributes[i][2] == "BOOLEAN":
-                return entry[i] <=  1
+                if int(entry[i]) >  1:
+                    return False, "BOOLEAN value invalid. Not 1 or 0"
+
+        return True, ""
 
 #===============================================================================
 # Writes entry to `invalid.csv` for review
+# -> True, "" if no errors
+# -> False, "CHAR length too large" if entry attribute is type CHAR && length is larger than schema
+# -> False, "INTEGER too large" if entry attribute is type INTEGER && size if larger than schema
+# -> False, "BOOLEAN value invalid. Not 1 or 0" if entry attribute is type BOOLEAN && value is not 1 or 0
 #===============================================================================
 def logInvalidEntry(entry):
     try:
@@ -110,8 +127,10 @@ def logInvalidEntry(entry):
 #===============================================================================
 # Parses `data.csv` and returns array of INSERT statement strings to be executed
 # in `main.py`
+# Ex) Entry => ['Steph King', '0', '54']
+# Return => ["INSERT INTO test (author_name,is_alive,books_authored_count) VALUES ('Steph King',0,54)"]
 #===============================================================================
-def parseData(cursor, attributes, fileName):
+def parseData(cursor, attributes, charIndexes, fileName):
     returnArray = []
     # Assemble Insert String
     attributeSting = ""
@@ -128,24 +147,16 @@ def parseData(cursor, attributes, fileName):
             csvreader = csv.reader(csvfile)
             for entry in csvreader:
                 if entryExists(cursor, entry):
-                    if validEntry(attributes, entry):
-                        # Build insertString for entry
-                        valueString = ""
-                        for i in range(len(entry)):
-                            # Check if value type is CHAR
-                            if isChar(attributes[i][2]):
-                                if i == (len(entry) - 1):
-                                    valueString += "\'" + entry[i] + "\'"
-                                else:
-                                    valueString += "\'" + entry[i] + "\'" + ","
-                            else:
-                                if i == (len(entry) - 1):
-                                    valueString += entry[i]
-                                else:
-                                    valueString += entry[i] + ","
-                        returnArray.append(insertString.format(valueString))
+                    valid, error = validEntry(attributes, entry)
+                    if valid:
+                        for index in charIndexes:
+                            entry[index] = "\'" + entry[index] + "\'"
+
+                        returnArray.append(insertString.format(",".join(entry)))
                     else:
                         print("Logging entry to 'invalid.csv' for review.\n")
+                        # Add error to entry
+                        entry.append(error)
                         logInvalidEntry(entry)
                 else:
                     print("ERROR: entry already exists.\n")
@@ -155,14 +166,3 @@ def parseData(cursor, attributes, fileName):
 
     except csv.Error as error:
         print("FILE ERROR: {}".format(error))
-
-#===============================================================================
-# Checks if a given attribute type is CHAR
-# -> True if type is CHAR
-# -> False if not
-#===============================================================================
-def isChar(attribute):
-    if attribute == "CHAR":
-        return True
-    else:
-        return False
